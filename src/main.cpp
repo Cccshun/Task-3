@@ -25,19 +25,19 @@ int main()
   // string filepath = "../network/ER1000B.txt";
   LoadGraph(G, filepath);
 
-  std::string network = "BA1000";
-  // std::string network = "WS1000";
-  // std::string network = "ER1000";
+  string network = "BA1000";
+  // string network = "WS1000";
+  // string network = "ER1000";
 
-  std::string filename_1 = "../data1000/"+ network +"-ga"+ to_string(kSeedSize) +".txt";
+  string filename_1 = "../data1000/"+ network +"-ga"+ to_string(kSeedSize) +".txt";
   class GA ga;
   ga.FindBest(filename_1); 
 
-  std::string filename_2 = "../data1000/"+ network +"-ma"+ to_string(kSeedSize) +".txt";
+  string filename_2 = "../data1000/"+ network +"-ma"+ to_string(kSeedSize) +".txt";
   class MA ma;
   ma.FindBest(filename_2); 
 
-  std::string filename_3 = "../data1000/"+ network +"-sa"+ to_string(kSeedSize) +".txt";
+  string filename_3 = "../data1000/"+ network +"-sa"+ to_string(kSeedSize) +".txt";
   class SA sa(1);
   sa.find(filename_3);
 }

@@ -7,6 +7,7 @@
 #include "influence.h"
 #include "attack.h"
 
+using namespace std;
 extern int G[][kN];
 
 struct Seeds
@@ -17,59 +18,59 @@ struct Seeds
 
 
 class GA {
-    friend double cal_Influ_Net(int graph[][kN], std::vector<int>& seeds);
-    friend std::vector<std::vector<std::vector<int>>> AttackEdge(int graph[][kN], std::vector<std::vector<int>>& vectorGraph);
-    friend std::pair<Edge, Load> FindMaxLoad(const std::map<Edge, Load>&);
-    friend std::pair<Edge, Load> RandomFind(const std::map<Edge, Load>&);
+    friend double cal_Influ_Net(int graph[][kN], vector<int>& seeds);
+    friend vector<vector<vector<int>>> AttackEdge(int graph[][kN], vector<vector<int>>& vectorGraph);
+    friend pair<Edge, Load> FindMaxLoad(const map<Edge, Load>&);
+    friend pair<Edge, Load> RandomFind(const map<Edge, Load>&);
     // friend double cal_Influ(std::vector<int>& seeds, std::vector<std::vector<int>>& g_vec, int graph[][N]);
     // friend void find_simi(std::vector<int>& Cs_simi, std::vector<int> Cs, std::vector<int> seeds);
     // friend void find_third(std::vector<int>& Cs_dis_simi, std::vector<int>& Cs_d, std::vector<int> Cs, std::vector<int> seeds, int seed);
 
 public:
-    GA(): m_pop(std::vector<Seeds> (kPopSize)), m_popChild(std::vector<Seeds> (kPopSize)),
-        m_vectorGraph(std::vector<std::vector<int>> (kN, std::vector<int>()))
+    GA(): pop_(vector<Seeds> (kPopSize)), pop_offspring_(vector<Seeds> (kPopSize)),
+        vector_graph_(vector<vector<int>> (kN, vector<int>()))
         {
             printf("**: N: %d, MAX_GEN: %d, POP_SIZE: %d, SEEDS_SIZE:%d, pc: %f, pm: %f, pgs: %f, pls: %f\n",
                 kN, kMaxGenerations, kPopSize, kSeedSize, kCrossoverProbability, kMutationProbability, kGlobalSearchProbability, kLocalSearchProbability);
         }
 
 public:
-    void FindBest(std::string);
+    void FindBest(string);
 
 protected:
     void Init();
     void Crossover();
-    void Mutation();
+    void Mutate();
     void SearchGlobal();
     void SearchLocal();
     void Select();
-    void Evaluation();
+    void Evaluate();
     // void _Evaluate(int graph[][N], Seeds& seeds) {
     //     // seeds.fitness = cal_Influ_Net(graph, seeds.X);
     //     seeds.fitness = cal_Influ(seeds.X, m_vectorGraph);
     // }
-    void _MaliciousModelEvaluate(Seeds& seeds) { seeds.fitness = cal_Influ_Model(seeds.X, m_maliciousAttackModel); };
-    double _random_attack_evaluate(Seeds& seeds);
+    void MaliciousModelEvaluate(Seeds& seeds) { seeds.fitness = cal_Influ_Model(seeds.X, malicious_attack_model_); };
+    double RandomAttackEvaluate(Seeds& seeds);
 
 protected:
-    void _load_vector_graph();
-    int _produce_random() { return rand() % kN; }
-    void _remove_duplivate(std::vector<int>&);
+    void LoadVectorGraph();
+    int ProduceRandom() { return rand() % kN; }
+    void RemoveDuplication(vector<int>&);
 
 protected:
-    std::vector<Seeds> m_pop;
-    std::vector<Seeds> m_popChild;
+    vector<Seeds> pop_;
+    vector<Seeds> pop_offspring_;
 
 protected:
-    std::vector<std::vector<int>> m_vectorGraph;
-    std::vector<std::vector<std::vector<int>>> m_maliciousAttackModel;
-    std::vector<std::vector<std::vector<int>>> m_maliciousAttackModelTest;
+    vector<vector<int>> vector_graph_;
+    vector<vector<vector<int>>> malicious_attack_model_;
+    vector<vector<vector<int>>> malicious_attack_model_test_;
 };
 
 
 class MA: GA {
 public:
-    void FindBest(std::string); 
+    void FindBest(string); 
 };
 
 #endif
