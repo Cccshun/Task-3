@@ -18,12 +18,12 @@ type Ga struct {
 func (g *Ga) Init() {
 	g.Pop = make([]im.Seed, im.PopSize)
 	for i := 0; i < im.PopSize; i++ {
-		g.Pop[i] = *im.NewSeed()
+		g.Pop[i] = im.NewSeed()
 	}
 }
 
 // 交叉
-func (g *Ga) Crossover() {
+func (g *Ga) Crossover(evalType int) {
 	g.NewPop = im.DeepCopyPop(g.Pop)
 	rand.Shuffle(len(g.NewPop), func(i, j int) {
 		g.NewPop[i], g.NewPop[j] = g.NewPop[j], g.NewPop[i]
@@ -31,9 +31,11 @@ func (g *Ga) Crossover() {
 	for i := 0; i < im.PopSize; i += 2 {
 		if rand.Float32() < im.PC {
 			g.doCrossover(&g.NewPop[i], &g.NewPop[i+1])
+			im.RemoveDuplicateGene(g.NewPop[i])
+			im.RemoveDuplicateGene(g.NewPop[i+1])
 			g.wg.Add(2)
-			go im.EvaluteSeedSync(&g.NewPop[i], &g.wg)
-			go im.EvaluteSeedSync(&g.NewPop[i+1], &g.wg)
+			go im.EvaluateSeedSync(&g.NewPop[i], &g.wg, evalType)
+			go im.EvaluateSeedSync(&g.NewPop[i+1], &g.wg, evalType)
 		}
 	}
 	g.wg.Wait()
@@ -49,11 +51,12 @@ func (g *Ga) doCrossover(seed1, seed2 *im.Seed) {
 }
 
 // 变异
-func (g *Ga) Mutate() {
+func (g *Ga) Mutate(evalType int) {
 	for i := range g.NewPop {
-		g.wg.Add(1)
 		g.doMutate(&g.NewPop[i])
-		go im.EvaluteSeedSync(&g.NewPop[i], &g.wg)
+		im.RemoveDuplicateGene(g.NewPop[i])
+		g.wg.Add(1)
+		go im.EvaluateSeedSync(&g.NewPop[i], &g.wg, evalType)
 	}
 	g.wg.Wait()
 }
@@ -62,31 +65,42 @@ func (g *Ga) Mutate() {
 func (g *Ga) doMutate(seed *im.Seed) {
 	for i := range seed.Nodes {
 		if rand.Float32() < im.PM {
-			seed.Nodes[i] = rand.Intn(im.NetworkSize)
+			seed.Nodes[i] = im.NewGene()
 		}
 	}
 }
 
+// 选择策略，轮盘赌
 func (g *Ga) Select() {
-	mergerdPop := im.DeepCopyPop(g.Pop)
-	mergerdPop = append(mergerdPop, im.DeepCopyPop(g.NewPop)...)
+	mergedPop := im.DeepCopyPop(g.Pop)
+	mergedPop = append(mergedPop, im.DeepCopyPop(g.NewPop)...)
 
-	g.Pop = im.RouletteSelection(mergerdPop)
+	g.Pop = im.RouletteSelection(mergedPop)
 	sort.Sort(im.BySeed(g.Pop))
 }
 
-func (g *Ga) FindSeed() {
+func (g *Ga) FindSeed(savePath string, evalType int) {
 	g.Init()
+	file := im.CreateDataPath(savePath, "ga")
+	defer file.Close()
 	for i := 0; i < im.MaxGen; i++ {
-		g.Crossover()
-		g.Mutate()
+		g.Crossover(evalType)
+		g.Mutate(evalType)
 		g.Select()
-		fmt.Printf("gen--%d: %s, sacle:%.2f, best seed:%s\n", i, g.ExportEvolutionInfo(), g.ExportScale(), g.ExportBestSeed())
+		if evalType == 1 {
+			im.SaveData(file, g.Pop[0].Fit, im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByEdge))
+		} else if evalType == 2 {
+			im.SaveData(file, g.Pop[0].Fit, im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByNode))
+		} else {
+			im.SaveData(file, g.Pop[0].Fit, im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByNode), im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByEdge))
+		}
+		fmt.Printf("gen-%d: %s\n", i, g.ExportBestSeed())
 	}
 }
 
 func (g *Ga) ExportBestSeed() string {
-	return fmt.Sprintf("%v", g.Pop[0])
+	return fmt.Sprintf("%v, NodeAttack:%.2f, EdgeAttack:%.2f",
+		g.Pop[0], im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByNode), im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByEdge))
 }
 
 func (g *Ga) ExportPop() {

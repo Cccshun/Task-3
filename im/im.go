@@ -70,25 +70,46 @@ func LoadGraph(network [][]int) {
 	}
 }
 
-func NewSeed() *Seed {
-	nodes := make([]int, PopSize)
-	for i := 0; i < PopSize; i++ {
-		nodes[i] = rand.Intn(NetworkSize)
-	}
-	return &Seed{nodes, 0}
+func NewGene() int {
+	return rand.Intn(NetworkSize)
 }
 
-func EvaluteSeedSync(seed *Seed, wg *sync.WaitGroup) {
+func NewSeed() Seed {
+	nodes := make([]int, SeedSize)
+	for i := 0; i < SeedSize; i++ {
+		nodes[i] = NewGene()
+	}
+	seed := Seed{nodes, 0}
+	RemoveDuplicateGene(seed)
+	sort.Ints(nodes)
+	return seed
+}
+
+// 同步评估种子适应度
+func EvaluateSeedSync(seed *Seed, wg *sync.WaitGroup, evalType int) {
 	defer wg.Done()
-	seed.Fit = CalRobustInfluence(seed.Nodes)
+	if evalType == 1 {
+		seed.Fit = CalRobustInfluenceByNode(seed.Nodes)
+	} else if evalType == 2 {
+		seed.Fit = CalRobustInfluenceByEdge(seed.Nodes)
+	} else {
+		seed.Fit = (CalRobustInfluenceByNode(seed.Nodes) + CalRobustInfluenceByEdge(seed.Nodes)) / 2
+	}
 }
 
 // 评估种子适应度，并保存在map[seed]fit中。异步计算
-func EvaluteSeedAsync(seed *Seed, seedMap map[*Seed]float64, wg *sync.WaitGroup, mu *sync.Mutex) {
+func EvaluateSeedAsync(seed Seed, seedMap map[*Seed]float64, wg *sync.WaitGroup, mu *sync.Mutex, evalType int) {
 	defer wg.Done()
-	fit := CalRobustInfluence(seed.Nodes)
+	var fit = 0.0
+	if evalType == 1 {
+		fit = CalRobustInfluenceByNode(seed.Nodes)
+	} else if evalType == 2 {
+		fit = CalRobustInfluenceByEdge(seed.Nodes)
+	} else {
+		seed.Fit = (CalRobustInfluenceByNode(seed.Nodes) + CalRobustInfluenceByEdge(seed.Nodes)) / 2
+	}
 	mu.Lock()
-	seedMap[seed] = fit
+	seedMap[&seed] = fit
 	mu.Unlock()
 }
 

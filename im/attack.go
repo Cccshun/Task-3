@@ -15,21 +15,32 @@ func Test() {
 	g.Attack()
 }
 
-// 鲁棒影响力
-func CalRobustInfluence(seeds []int) float64 {
+// 节点攻击下鲁棒影响力
+func CalRobustInfluenceByNode(seeds []int) float64 {
 	g := AssignLoad(AdjList)
 	sumFit := 0.0
 	cnt := 0 // 故障次数
 	for len(g) > 1 {
-		if rand.Float32() < NodeAttackPer {
-			//node := g.findMaxLoadNode()
-			node := g.findRandomNode()
-			g.AttackNode(node)
-		} else {
-			//edge := g.findMaxLoadEdge()
-			edge := g.findRandomEdge()
-			g.AttackEdge(edge)
-		}
+		node := g.findMaxLoadNode()
+		//node := g.findRandomNode()
+		g.AttackNode(node)
+		g.removeOverloadEdge()
+		adjList := graphToList(g)
+		sumFit += CalInfluence(seeds, adjList)
+		cnt++
+	}
+	return sumFit / float64(cnt)
+}
+
+// 链路攻击下鲁棒影响力
+func CalRobustInfluenceByEdge(seeds []int) float64 {
+	g := AssignLoad(AdjList)
+	sumFit := 0.0
+	cnt := 0 // 故障次数
+	for len(g) > 1 {
+		edge := g.findMaxLoadEdge()
+		//edge := g.findRandomEdge()
+		g.AttackEdge(edge)
 		g.removeOverloadEdge()
 		adjList := graphToList(g)
 		sumFit += CalInfluence(seeds, adjList)
@@ -69,12 +80,12 @@ func (g EdgeWithLoad) Attack() {
 	cnt := 0
 	for len(g) > 1 {
 		if rand.Float32() < NodeAttackPer {
-			//node := g.findMaxLoadNode()
-			node := g.findRandomNode()
+			node := g.findMaxLoadNode()
+			//node := g.findRandomNode()
 			g.AttackNode(node)
 		} else {
-			//edge := g.findMaxLoadEdge()
-			edge := g.findRandomEdge()
+			edge := g.findMaxLoadEdge()
+			//edge := g.findRandomEdge()
 			g.AttackEdge(edge)
 		}
 		g.removeOverloadEdge()
@@ -111,10 +122,10 @@ func (g EdgeWithLoad) doRemoveEdge(edge Edge) {
 			adjCap += v[1] / 2
 		}
 	}
-	//分配转移负载,按cap等比分配
+	//分配转移负载,按cap等比分配。《转移负载时会损失65%负载》
 	for k, v := range g {
 		if k[0] == left || k[1] == left || k[0] == right || k[1] == right {
-			g[k] = Load{v[0] + (v[1]/adjCap)*removedLoad[0], v[1]}
+			g[k] = Load{v[0] + (v[1]/adjCap)*removedLoad[0]*0.65, v[1]}
 		}
 	}
 }

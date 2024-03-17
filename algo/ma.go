@@ -13,25 +13,25 @@ type Ma struct {
 }
 
 // 局部搜索
-func (m *Ma) LocalSearch() {
+func (m *Ma) LocalSearch(evalType int) {
 	for i := 0; i < im.PopSize; i++ {
 		if rand.Float32() < im.PL {
 			m.wg.Add(1)
-			go m.doLocalSearch(&m.NewPop[i])
+			go m.doLocalSearch(&m.NewPop[i], evalType)
 		}
 	}
 	m.wg.Wait()
 }
 
-func (m *Ma) doLocalSearch(seed *im.Seed) {
+func (m *Ma) doLocalSearch(seed *im.Seed, evalType int) {
 	defer m.wg.Done()
 	for i := 0; i < im.SeedSize; i++ {
-		CompareAndSwap(seed, i)
+		CompareAndSwap(seed, i, evalType)
 	}
 }
 
 // 搜索2-hop内最优种子
-func CompareAndSwap(seed *im.Seed, idx int) {
+func CompareAndSwap(seed *im.Seed, idx int, evalType int) {
 	nodes := im.Get2HopNodes(seed.Nodes[idx])
 	var wg sync.WaitGroup
 	var mu sync.Mutex
@@ -41,8 +41,9 @@ func CompareAndSwap(seed *im.Seed, idx int) {
 	for node := range nodes {
 		seedCopy := im.DeepCopySeed(*seed)
 		seedCopy.Nodes[idx] = node
+		im.RemoveDuplicateGene(seedCopy)
 		wg.Add(1)
-		go im.EvaluteSeedAsync(&seedCopy, seedsMap, &wg, &mu)
+		go im.EvaluateSeedAsync(seedCopy, seedsMap, &wg, &mu, evalType)
 	}
 	wg.Wait()
 
@@ -55,13 +56,22 @@ func CompareAndSwap(seed *im.Seed, idx int) {
 	}
 }
 
-func (m *Ma) FindSeed() {
+func (m *Ma) FindSeed(savePath string, evalType int) {
 	m.Init()
+	file := im.CreateDataPath(savePath, "ma")
+	defer file.Close()
 	for i := 0; i < im.MaxGen; i++ {
-		m.Crossover()
-		m.Mutate()
-		m.LocalSearch()
+		m.Crossover(evalType)
+		m.Mutate(evalType)
+		m.LocalSearch(evalType)
 		m.Select()
-		fmt.Printf("gen--%d: %s, sacle:%.2f\n", i, m.ExportEvolutionInfo(), m.ExportScale())
+		if evalType == 1 {
+			im.SaveData(file, m.Pop[0].Fit, im.GetAvgFit(m.Pop[0].Nodes, im.CalRobustInfluenceByEdge))
+		} else if evalType == 2 {
+			im.SaveData(file, m.Pop[0].Fit, im.GetAvgFit(m.Pop[0].Nodes, im.CalRobustInfluenceByNode))
+		} else {
+			im.SaveData(file, m.Pop[0].Fit, im.GetAvgFit(m.Pop[0].Nodes, im.CalRobustInfluenceByNode), im.GetAvgFit(m.Pop[0].Nodes, im.CalRobustInfluenceByEdge))
+		}
+		fmt.Printf("gen-%d: %s\n", i, m.ExportBestSeed())
 	}
 }

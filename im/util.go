@@ -1,9 +1,31 @@
 package im
 
 import (
+	"fmt"
 	"math/rand"
+	"os"
 	"sort"
+	"strconv"
 )
+
+// 去除个体中对重复基因
+func RemoveDuplicateGene(src Seed) {
+	hashTable := map[int]struct{}{}
+	for _, val := range src.Nodes {
+		hashTable[val] = struct{}{}
+	}
+
+	// 补充基因
+	for len(hashTable) < SeedSize {
+		hashTable[NewGene()] = struct{}{}
+	}
+
+	idx := 0
+	for k := range hashTable {
+		src.Nodes[idx] = k
+		idx++
+	}
+}
 
 // 深拷贝种子
 func DeepCopySeed(src Seed) Seed {
@@ -60,4 +82,37 @@ func Get2HopNodes(node int) map[int]struct{} {
 		}
 	}
 	return set
+}
+
+func GetAvgFit(seeds []int, f func([]int) float64) float64 {
+	sumFit := 0.0
+	for i := 0; i < RepeatTime; i++ {
+		sumFit += f(seeds)
+	}
+	return sumFit / RepeatTime
+}
+
+func CreateDataPath(path, algoName string) *os.File {
+	file, err := os.Create(path + algoName + "-" + strconv.Itoa(SeedSize) + ".txt")
+	if err != nil {
+		fmt.Printf("创建文件错误:{%s}\n", err)
+	}
+	return file
+}
+
+func SaveData(file *os.File, datas ...float64) {
+	for idx, data := range datas {
+		if _, err := file.WriteString(strconv.FormatFloat(data, 'f', 3, 64)); err != nil {
+			fmt.Printf("写文件错误: {%s}\n", err)
+		}
+		if idx != len(datas)-1 {
+			if _, err := file.WriteString(" "); err != nil {
+				fmt.Printf("写文件错误: {%s}\n", err)
+			}
+		}
+	}
+
+	if _, err := file.WriteString("\n"); err != nil {
+		fmt.Printf("写文件错误: {%s}\n", err)
+	}
 }
