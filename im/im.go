@@ -130,7 +130,7 @@ func (s Seed) Hash() uint64 {
 	return hash.Sum64()
 }
 
-//  通过两个Nodes数组判断两个Seed是否一致
+// Equal 通过两个Nodes数组判断两个Seed是否一致
 func (s Seed) Equal(other Seed) bool {
 	// 深拷贝两个Nodes数组
 	sortedArr1 := make([]int, len(s.Nodes))

@@ -2,8 +2,8 @@ package im
 
 // parameters for IM
 const (
-	SeedSize       = 10
-	PopSize        = 40
+	SeedSize       = 6
+	PopSize        = 20
 	ActivationProb = 0.01
 )
 
@@ -12,7 +12,7 @@ const (
 	PC     = 0.5
 	PM     = 0.5
 	PL     = 0.3
-	MaxGen = 150
+	MaxGen = 100
 )
 
 // parameters for cascading failure

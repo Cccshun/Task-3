@@ -15,7 +15,7 @@ func Test() {
 	g.Attack()
 }
 
-// 节点攻击下鲁棒影响力
+// CalRobustInfluenceByNode 节点攻击下鲁棒影响力
 func CalRobustInfluenceByNode(seeds []int) float64 {
 	g := AssignLoad(AdjList)
 	sumFit := 0.0

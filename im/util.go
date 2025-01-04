@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-// 去除个体中对重复基因
+// RemoveDuplicateGene 去除Seed中的重复基因
 func RemoveDuplicateGene(src Seed) {
 	hashTable := map[int]struct{}{}
 	for _, val := range src.Nodes {
@@ -17,6 +17,7 @@ func RemoveDuplicateGene(src Seed) {
 
 	// 补充基因
 	for len(hashTable) < SeedSize {
+		// todo
 		hashTable[NewGene()] = struct{}{}
 	}
 

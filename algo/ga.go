@@ -3,6 +3,7 @@ package algo
 import (
 	"fmt"
 	"math/rand"
+	"os"
 	"sort"
 	"sync"
 
@@ -44,6 +45,7 @@ func (g *Ga) Crossover(evalType int) {
 // 均匀交叉
 func (g *Ga) doCrossover(seed1, seed2 *im.Seed) {
 	for i := 0; i < im.SeedSize; i++ {
+		// todo 0.5?
 		if rand.Float32() < 0.5 {
 			seed1.Nodes[i], seed2.Nodes[i] = seed2.Nodes[i], seed1.Nodes[i]
 		}
@@ -87,12 +89,15 @@ func (g *Ga) FindSeed(savePath string, evalType int) {
 		g.Crossover(evalType)
 		g.Mutate(evalType)
 		g.Select()
-		if evalType == 1 {
+		switch evalType {
+		case 1:
 			im.SaveData(file, g.Pop[0].Fit, im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByEdge))
-		} else if evalType == 2 {
+		case 2:
 			im.SaveData(file, g.Pop[0].Fit, im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByNode))
-		} else {
+		case 3:
 			im.SaveData(file, g.Pop[0].Fit, im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByNode), im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByEdge))
+		default:
+			_, _ = fmt.Fprintln(os.Stderr, "parameter error")
 		}
 		fmt.Printf("gen-%d: %s\n", i, g.ExportBestSeed())
 	}

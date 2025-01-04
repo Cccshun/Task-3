@@ -39,9 +39,9 @@ func CalInfluence(seeds []int, adjList [][]int) float64 {
 		var CsD []int
 		findThird(&CsDisSimi, &CsD, Cs, seeds, seed)
 
-		for i := 0; i < len(CsDisSimi); i++ {
+		for i2 := 0; i2 < len(CsDisSimi); i2++ {
 			for j := 0; j < len(CsD); j++ {
-				if contains(adjList[CsDisSimi[i]], CsD[j]) {
+				if contains(adjList[CsDisSimi[i2]], CsD[j]) {
 					thrSumTemp += ActivationProb * ActivationProb
 				}
 			}
