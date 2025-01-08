@@ -2,8 +2,8 @@ package im
 
 // parameters for IM
 const (
-	SeedSize       = 6
-	PopSize        = 20
+	SeedSize       = 5
+	PopSize        = 10
 	ActivationProb = 0.01
 )
 

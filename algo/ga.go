@@ -104,7 +104,7 @@ func (g *Ga) FindSeed(savePath string, evalType int) {
 }
 
 func (g *Ga) ExportBestSeed() string {
-	return fmt.Sprintf("%v, NodeAttack:%.2f, EdgeAttack:%.2f",
+	return fmt.Sprintf("%v, NodeAttack:%.3f, EdgeAttack:%.3f",
 		g.Pop[0], im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByNode), im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByEdge))
 }
 

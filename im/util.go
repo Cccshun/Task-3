@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"time"
 )
 
 // RemoveDuplicateGene 去除Seed中的重复基因
@@ -28,7 +29,7 @@ func RemoveDuplicateGene(src Seed) {
 	}
 }
 
-// 深拷贝种子
+// DeepCopySeed 深拷贝种子
 func DeepCopySeed(src Seed) Seed {
 	nodes := make([]int, SeedSize)
 	for i := range nodes {
@@ -37,7 +38,7 @@ func DeepCopySeed(src Seed) Seed {
 	return Seed{Nodes: nodes, Fit: src.Fit}
 }
 
-// 深拷贝种群
+// DeepCopyPop 深拷贝种群
 func DeepCopyPop(src []Seed) []Seed {
 	dis := make([]Seed, PopSize)
 	for i := range dis {
@@ -46,7 +47,7 @@ func DeepCopyPop(src []Seed) []Seed {
 	return dis
 }
 
-// 轮盘赌选择
+// RouletteSelection 轮盘赌选择
 func RouletteSelection(src []Seed) []Seed {
 	sort.Sort(BySeed(src))
 	totalFit := float64(0)
@@ -74,7 +75,7 @@ func RouletteSelection(src []Seed) []Seed {
 	return dist[:]
 }
 
-// 选择node在网络G中2-hop领域的相邻节点
+// Get2HopNodes 选择node在网络G中2-hop领域的相邻节点
 func Get2HopNodes(node int) map[int]struct{} {
 	set := make(map[int]struct{})
 	for adj1 := range AdjList[node] { //选择node的1-hop领域
@@ -116,4 +117,44 @@ func SaveData(file *os.File, datas ...float64) {
 	if _, err := file.WriteString("\n"); err != nil {
 		fmt.Printf("写文件错误: {%s}\n", err)
 	}
+}
+
+func WriteGraphToFile(filename string, graph [][]int) error {
+	file, err1 := os.Create(filename)
+	if err1 != nil {
+		return err1
+	}
+	defer file.Close()
+
+	for _, row := range graph {
+		for _, val := range row {
+			if _, err2 := fmt.Fprintf(file, "%d", val); err2 != nil {
+				return err2
+			}
+		}
+		if _, err3 := fmt.Fprintf(file, "\n"); err3 != nil {
+			return err3
+		}
+	}
+
+	return nil
+}
+
+func GenerateRandomGraph(numNodes int, p float64) [][]int {
+	rand.Seed(time.Now().UnixNano())
+
+	adjMatrix := make([][]int, numNodes)
+	for i := range adjMatrix {
+		adjMatrix[i] = make([]int, numNodes)
+	}
+
+	for i := 0; i < numNodes; i++ {
+		for j := i + 1; j < numNodes; j++ {
+			if rand.Float64() < p {
+				adjMatrix[i][j] = 1
+				adjMatrix[j][i] = 1
+			}
+		}
+	}
+	return adjMatrix
 }
