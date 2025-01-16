@@ -8,12 +8,12 @@ import (
 	"sysu.com/task3/im"
 )
 
-type Ma struct {
-	Ga
+type MA struct {
+	GA
 }
 
 // 局部搜索
-func (m *Ma) LocalSearch(evalType int) {
+func (m *MA) LocalSearch(evalType int) {
 	for i := 0; i < im.PopSize; i++ {
 		if rand.Float32() < im.PL {
 			m.wg.Add(1)
@@ -23,7 +23,7 @@ func (m *Ma) LocalSearch(evalType int) {
 	m.wg.Wait()
 }
 
-func (m *Ma) doLocalSearch(seed *im.Seed, evalType int) {
+func (m *MA) doLocalSearch(seed *im.Seed, evalType int) {
 	defer m.wg.Done()
 	for i := 0; i < im.SeedSize; i++ {
 		CompareAndSwap(seed, i, evalType)
@@ -56,7 +56,7 @@ func CompareAndSwap(seed *im.Seed, idx int, evalType int) {
 	}
 }
 
-func (m *Ma) FindSeed(savePath string, evalType int) {
+func (m *MA) FindBestSeed(savePath string, evalType int) {
 	m.Init()
 	file := im.CreateDataPath(savePath, "ma")
 	defer file.Close()

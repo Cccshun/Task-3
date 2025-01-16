@@ -10,21 +10,21 @@ import (
 	"sysu.com/task3/im"
 )
 
-type Ga struct {
+type GA struct {
 	wg     sync.WaitGroup
 	Pop    []im.Seed
 	NewPop []im.Seed
 }
 
-func (g *Ga) Init() {
+func (g *GA) Init() {
 	g.Pop = make([]im.Seed, im.PopSize)
 	for i := 0; i < im.PopSize; i++ {
 		g.Pop[i] = im.NewSeed()
 	}
 }
 
-// 交叉
-func (g *Ga) Crossover(evalType int) {
+// Crossover 交叉
+func (g *GA) Crossover(evalType int) {
 	g.NewPop = im.DeepCopyPop(g.Pop)
 	rand.Shuffle(len(g.NewPop), func(i, j int) {
 		g.NewPop[i], g.NewPop[j] = g.NewPop[j], g.NewPop[i]
@@ -43,7 +43,7 @@ func (g *Ga) Crossover(evalType int) {
 }
 
 // 均匀交叉
-func (g *Ga) doCrossover(seed1, seed2 *im.Seed) {
+func (g *GA) doCrossover(seed1, seed2 *im.Seed) {
 	for i := 0; i < im.SeedSize; i++ {
 		// todo 0.5?
 		if rand.Float32() < 0.5 {
@@ -53,7 +53,7 @@ func (g *Ga) doCrossover(seed1, seed2 *im.Seed) {
 }
 
 // 变异
-func (g *Ga) Mutate(evalType int) {
+func (g *GA) Mutate(evalType int) {
 	for i := range g.NewPop {
 		g.doMutate(&g.NewPop[i])
 		im.RemoveDuplicateGene(g.NewPop[i])
@@ -64,7 +64,7 @@ func (g *Ga) Mutate(evalType int) {
 }
 
 // 单点变异
-func (g *Ga) doMutate(seed *im.Seed) {
+func (g *GA) doMutate(seed *im.Seed) {
 	for i := range seed.Nodes {
 		if rand.Float32() < im.PM {
 			seed.Nodes[i] = im.NewGene()
@@ -73,7 +73,7 @@ func (g *Ga) doMutate(seed *im.Seed) {
 }
 
 // 选择策略，轮盘赌
-func (g *Ga) Select() {
+func (g *GA) Select() {
 	mergedPop := im.DeepCopyPop(g.Pop)
 	mergedPop = append(mergedPop, im.DeepCopyPop(g.NewPop)...)
 
@@ -81,7 +81,7 @@ func (g *Ga) Select() {
 	sort.Sort(im.BySeed(g.Pop))
 }
 
-func (g *Ga) FindSeed(savePath string, evalType int) {
+func (g *GA) FindBestSeed(savePath string, evalType int) {
 	g.Init()
 	file := im.CreateDataPath(savePath, "ga")
 	defer file.Close()
@@ -103,25 +103,25 @@ func (g *Ga) FindSeed(savePath string, evalType int) {
 	}
 }
 
-func (g *Ga) ExportBestSeed() string {
+func (g *GA) ExportBestSeed() string {
 	return fmt.Sprintf("%v, NodeAttack:%.3f, EdgeAttack:%.3f",
 		g.Pop[0], im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByNode), im.GetAvgFit(g.Pop[0].Nodes, im.CalRobustInfluenceByEdge))
 }
 
-func (g *Ga) ExportPop() {
+func (g *GA) ExportPop() {
 	for idx, elem := range g.Pop {
 		fmt.Printf("Pop--%d:%+v\n", idx, elem)
 	}
 }
 
-func (g *Ga) ExportNewPop() {
+func (g *GA) ExportNewPop() {
 	for idx, elem := range g.NewPop {
 		fmt.Printf("NewPop--%d:%+v\n", idx, elem)
 	}
 }
 
 // 输出种群个体适应度信息
-func (g *Ga) ExportEvolutionInfo() string {
+func (g *GA) ExportEvolutionInfo() string {
 	str := "[ "
 	for idx, elem := range g.Pop {
 		str += fmt.Sprintf("%d:%.2f ", idx, elem.Fit)
@@ -131,7 +131,7 @@ func (g *Ga) ExportEvolutionInfo() string {
 }
 
 // 输出种群中不同个体的比例
-func (g *Ga) ExportScale() float64 {
+func (g *GA) ExportScale() float64 {
 	hashTable := map[uint64]struct{}{}
 	// 统计Pop种群中不重复的个体数量
 	for _, seed := range g.Pop {

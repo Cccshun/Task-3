@@ -24,14 +24,14 @@ var (
 	NetworkSize int
 )
 
-// 加载顺序不可改变!
+// Init 加载顺序不可改变!
 func Init(path string) {
 	LoadNetwork(path)
 	NetworkSize = len(AdjMatrix)
 	LoadGraph(AdjMatrix)
 }
 
-// 读取数据文件
+// LoadNetwork 读取数据文件
 func LoadNetwork(path string) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -85,7 +85,7 @@ func NewSeed() Seed {
 	return seed
 }
 
-// 同步评估种子适应度
+// EvaluateSeedSync 同步评估种子适应度
 func EvaluateSeedSync(seed *Seed, wg *sync.WaitGroup, evalType int) {
 	defer wg.Done()
 	if evalType == 1 {
@@ -97,7 +97,7 @@ func EvaluateSeedSync(seed *Seed, wg *sync.WaitGroup, evalType int) {
 	}
 }
 
-// 评估种子适应度，并保存在map[seed]fit中。异步计算
+// EvaluateSeedAsync 评估种子适应度，并保存在map[seed]fit中。异步计算
 func EvaluateSeedAsync(seed Seed, seedMap map[*Seed]float64, wg *sync.WaitGroup, mu *sync.Mutex, evalType int) {
 	defer wg.Done()
 	var fit = 0.0
@@ -142,4 +142,19 @@ func (s Seed) Equal(other Seed) bool {
 	sort.Ints(sortedArr1)
 	sort.Ints(sortedArr2)
 	return reflect.DeepEqual(sortedArr1, sortedArr2)
+}
+
+func (s Seed) SimilarityCalculate(target Seed) float64 {
+	nodeSet := make(map[int]bool)
+	for _, node := range s.Nodes {
+		nodeSet[node] = true
+	}
+
+	count := 0.0
+	for _, node := range target.Nodes {
+		if nodeSet[node] {
+			count++
+		}
+	}
+	return count / float64(len(nodeSet))
 }

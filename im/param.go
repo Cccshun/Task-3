@@ -2,8 +2,8 @@ package im
 
 // parameters for IM
 const (
-	SeedSize       = 5
-	PopSize        = 10
+	SeedSize       = 10
+	PopSize        = 30
 	ActivationProb = 0.01
 )
 
@@ -22,3 +22,5 @@ const (
 	NodeAttackPer = 0.0
 	RepeatTime    = 5 // 重复次数
 )
+
+const NicheNumber = 6

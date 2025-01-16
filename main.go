@@ -18,8 +18,10 @@ func main() {
 func findSeed() {
 	// evalType=1, 优化node攻击；evalType=2，优化edge攻击; evalType=else,优化node+edge攻击
 	savePath := "data/BA200/tmp"
-	var ma = new(algo.Ma)
-	ma.FindSeed(savePath, 3)
-	var ga = new(algo.Ga)
-	ga.FindSeed(savePath, 3)
+	//var ma = new(algo.MA)
+	//ma.FindBestSeed(savePath, 3)
+	//var ga = new(algo.GA)
+	//ga.FindBestSeed(savePath, 3)
+	var nma = new(algo.NMA)
+	nma.FindBestSeed(savePath, 3)
 }
