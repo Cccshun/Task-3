@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"sort"
+	"sync"
 	"sysu.com/task3/im"
 )
 
@@ -12,7 +13,8 @@ type NMA struct {
 	NicheList [][]im.Seed
 }
 
-func (n *NMA) FindBestSeed(savePath string, evalType int) {
+func (n *NMA) FindBestSeed(savePath string, evalType int, wg *sync.WaitGroup) {
+	defer wg.Done()
 	n.Init(evalType)
 	file := im.CreateDataPath(savePath, "nma")
 	defer file.Close()
@@ -32,7 +34,7 @@ func (n *NMA) FindBestSeed(savePath string, evalType int) {
 		} else {
 			im.SaveData(file, n.Pop[0].Fit, im.GetAvgFit(n.Pop[0].Nodes, im.CalRobustInfluenceByNode), im.GetAvgFit(n.Pop[0].Nodes, im.CalRobustInfluenceByEdge))
 		}
-		fmt.Printf("gen-%d: %s\n", i, n.ExportBestSeed())
+		fmt.Printf("nma-gen-%d: %s\n", i, n.ExportBestSeed())
 	}
 }
 
@@ -89,7 +91,6 @@ func (n *NMA) NicheCrossover(evalType int) {
 	for _, list := range n.NicheList {
 		tmp = append(tmp, list...)
 	}
-	fmt.Printf("交叉后:%d   ", similarity(n.Pop, tmp))
 }
 
 func (n *NMA) DeduplicateSeed() {
@@ -102,24 +103,10 @@ func (n *NMA) DeduplicateSeed() {
 		}
 	}
 	n.NewPop = tmpPop
-
-	fmt.Printf("去重后:%d  ", similarity(n.Pop, n.NewPop))
 }
 
 func (n *NMA) PopAlign(evalType int) {
 	for len(n.NewPop) < im.PopSize {
 		n.NewPop = append(n.NewPop, im.NewSeed(evalType))
 	}
-}
-
-func similarity(source, other []im.Seed) int {
-	cnt := 0
-	for _, i := range source {
-		for _, j := range other {
-			if i.Equal(j) {
-				cnt++
-			}
-		}
-	}
-	return cnt
 }

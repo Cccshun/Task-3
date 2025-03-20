@@ -81,7 +81,8 @@ func (g *GA) Select() {
 	sort.Sort(im.BySeed(g.Pop))
 }
 
-func (g *GA) FindBestSeed(savePath string, evalType int) {
+func (g *GA) FindBestSeed(savePath string, evalType int, wg *sync.WaitGroup) {
+	defer wg.Done()
 	g.Init(evalType)
 	file := im.CreateDataPath(savePath, "ga")
 	defer file.Close()
@@ -99,7 +100,7 @@ func (g *GA) FindBestSeed(savePath string, evalType int) {
 		default:
 			_, _ = fmt.Fprintln(os.Stderr, "parameter error")
 		}
-		fmt.Printf("gen-%d: %s\n", i, g.ExportBestSeed())
+		fmt.Printf("ga-gen-%d: %s\n", i, g.ExportBestSeed())
 	}
 }
 

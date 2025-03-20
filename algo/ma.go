@@ -21,8 +21,6 @@ func (m *MA) LocalSearch(evalType int) {
 		}
 	}
 	m.wg.Wait()
-
-	fmt.Printf("局部搜索后:%d   ", similarity(m.Pop, m.NewPop))
 }
 
 func (m *MA) doLocalSearch(seed *im.Seed, evalType int) {
@@ -58,7 +56,8 @@ func CompareAndSwap(seed *im.Seed, idx int, evalType int) {
 	}
 }
 
-func (m *MA) FindBestSeed(savePath string, evalType int) {
+func (m *MA) FindBestSeed(savePath string, evalType int, wg *sync.WaitGroup) {
+	defer wg.Done()
 	m.Init(evalType)
 	file := im.CreateDataPath(savePath, "ma")
 	defer file.Close()
@@ -74,6 +73,6 @@ func (m *MA) FindBestSeed(savePath string, evalType int) {
 		} else {
 			im.SaveData(file, m.Pop[0].Fit, im.GetAvgFit(m.Pop[0].Nodes, im.CalRobustInfluenceByNode), im.GetAvgFit(m.Pop[0].Nodes, im.CalRobustInfluenceByEdge))
 		}
-		fmt.Printf("gen-%d: %s\n", i, m.ExportBestSeed())
+		fmt.Printf("ma-gen-%d: %s\n", i, m.ExportBestSeed())
 	}
 }

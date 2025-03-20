@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/rand"
+	"sync"
 	"sysu.com/task3/algo"
 	"sysu.com/task3/im"
 	"time"
@@ -20,16 +21,17 @@ func findSeed(fileName string) {
 	var savePath string
 	switch evalType {
 	case 1:
-		savePath = "data/node-edge/" + fileName + "tmp"
+		savePath = "data/node-edge/" + fileName + "-"
 	case 2:
-		savePath = "data/edge-node/" + fileName + "tmp"
+		savePath = "data/edge-node/" + fileName + "-"
 	default:
-		savePath = "data/" + fileName + "tmp"
+		savePath = "data/" + fileName + "-"
 	}
-	var ga = new(algo.GA)
-	ga.FindBestSeed(savePath, evalType)
-	var ma = new(algo.MA)
-	ma.FindBestSeed(savePath, evalType)
-	var nma = new(algo.NMA)
-	nma.FindBestSeed(savePath, evalType)
+	wg := new(sync.WaitGroup)
+	wg.Add(3)
+	go new(algo.GA).FindBestSeed(savePath, evalType, wg)
+	go new(algo.MA).FindBestSeed(savePath, evalType, wg)
+	go new(algo.NMA).FindBestSeed(savePath, evalType, wg)
+	wg.Wait()
+
 }
