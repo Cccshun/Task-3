@@ -1,27 +1,35 @@
 package main
 
 import (
-	"fmt"
+	"math/rand"
 	"sysu.com/task3/algo"
 	"sysu.com/task3/im"
 	"time"
 )
 
 func main() {
-	im.Init("network/BA200.txt")
-	startTime := time.Now()
-	findSeed()
-	elapsedTime := time.Since(startTime)
-	fmt.Printf("运行时间: %s\n", elapsedTime)
+	rand.Seed(time.Now().UnixNano())
+	fileName := "BA200"
+	im.Init("network/" + fileName + ".txt")
+	findSeed(fileName)
 }
 
-func findSeed() {
+func findSeed(fileName string) {
 	// evalType=1, 优化node攻击；evalType=2，优化edge攻击; evalType=else,优化node+edge攻击
-	savePath := "data/BA200/tmp"
-	//var ma = new(algo.MA)
-	//ma.FindBestSeed(savePath, 3)
-	//var ga = new(algo.GA)
-	//ga.FindBestSeed(savePath, 3)
+	evalType := 1
+	var savePath string
+	switch evalType {
+	case 1:
+		savePath = "data/node-edge/" + fileName + "tmp"
+	case 2:
+		savePath = "data/edge-node/" + fileName + "tmp"
+	default:
+		savePath = "data/" + fileName + "tmp"
+	}
+	var ga = new(algo.GA)
+	ga.FindBestSeed(savePath, evalType)
+	var ma = new(algo.MA)
+	ma.FindBestSeed(savePath, evalType)
 	var nma = new(algo.NMA)
-	nma.FindBestSeed(savePath, 3)
+	nma.FindBestSeed(savePath, evalType)
 }

@@ -21,6 +21,8 @@ func (m *MA) LocalSearch(evalType int) {
 		}
 	}
 	m.wg.Wait()
+
+	fmt.Printf("局部搜索后:%d   ", similarity(m.Pop, m.NewPop))
 }
 
 func (m *MA) doLocalSearch(seed *im.Seed, evalType int) {
@@ -57,7 +59,7 @@ func CompareAndSwap(seed *im.Seed, idx int, evalType int) {
 }
 
 func (m *MA) FindBestSeed(savePath string, evalType int) {
-	m.Init()
+	m.Init(evalType)
 	file := im.CreateDataPath(savePath, "ma")
 	defer file.Close()
 	for i := 0; i < im.MaxGen; i++ {

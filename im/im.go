@@ -74,12 +74,21 @@ func NewGene() int {
 	return rand.Intn(NetworkSize)
 }
 
-func NewSeed() Seed {
+func NewSeed(evalType int) Seed {
 	nodes := make([]int, SeedSize)
 	for i := 0; i < SeedSize; i++ {
 		nodes[i] = NewGene()
 	}
-	seed := Seed{nodes, 0}
+	var fit float64
+	switch evalType {
+	case 1:
+		fit = CalRobustInfluenceByNode(nodes)
+	case 2:
+		fit = CalRobustInfluenceByEdge(nodes)
+	default:
+		fit = (CalRobustInfluenceByNode(nodes) + CalRobustInfluenceByEdge(nodes)) / 2
+	}
+	seed := Seed{nodes, fit}
 	RemoveDuplicateGene(seed)
 	sort.Ints(nodes)
 	return seed
@@ -88,11 +97,12 @@ func NewSeed() Seed {
 // EvaluateSeedSync 同步评估种子适应度
 func EvaluateSeedSync(seed *Seed, wg *sync.WaitGroup, evalType int) {
 	defer wg.Done()
-	if evalType == 1 {
+	switch evalType {
+	case 1:
 		seed.Fit = CalRobustInfluenceByNode(seed.Nodes)
-	} else if evalType == 2 {
+	case 2:
 		seed.Fit = CalRobustInfluenceByEdge(seed.Nodes)
-	} else {
+	default:
 		seed.Fit = (CalRobustInfluenceByNode(seed.Nodes) + CalRobustInfluenceByEdge(seed.Nodes)) / 2
 	}
 }

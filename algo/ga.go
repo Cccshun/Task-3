@@ -16,10 +16,10 @@ type GA struct {
 	NewPop []im.Seed
 }
 
-func (g *GA) Init() {
+func (g *GA) Init(evalType int) {
 	g.Pop = make([]im.Seed, im.PopSize)
 	for i := 0; i < im.PopSize; i++ {
-		g.Pop[i] = im.NewSeed()
+		g.Pop[i] = im.NewSeed(evalType)
 	}
 }
 
@@ -52,7 +52,7 @@ func (g *GA) doCrossover(seed1, seed2 *im.Seed) {
 	}
 }
 
-// 变异
+// Mutate 变异
 func (g *GA) Mutate(evalType int) {
 	for i := range g.NewPop {
 		g.doMutate(&g.NewPop[i])
@@ -72,17 +72,17 @@ func (g *GA) doMutate(seed *im.Seed) {
 	}
 }
 
-// 选择策略，轮盘赌
+// Select 选择策略，轮盘赌
 func (g *GA) Select() {
 	mergedPop := im.DeepCopyPop(g.Pop)
-	mergedPop = append(mergedPop, im.DeepCopyPop(g.NewPop)...)
+	mergedPop = append(mergedPop, g.NewPop...)
 
 	g.Pop = im.RouletteSelection(mergedPop)
 	sort.Sort(im.BySeed(g.Pop))
 }
 
 func (g *GA) FindBestSeed(savePath string, evalType int) {
-	g.Init()
+	g.Init(evalType)
 	file := im.CreateDataPath(savePath, "ga")
 	defer file.Close()
 	for i := 0; i < im.MaxGen; i++ {
